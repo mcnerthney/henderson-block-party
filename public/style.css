@@ -445,6 +445,54 @@ input {
   color: var(--muted);
 }
 
+.confirmation-dialog {
+  width: min(620px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  color: var(--text);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.3);
+}
+
+.confirmation-dialog::backdrop {
+  background: rgba(15, 23, 42, 0.62);
+}
+
+.confirmation-dialog__content {
+  display: grid;
+  gap: 16px;
+  padding: 28px;
+}
+
+.confirmation-dialog h2 {
+  margin: 0;
+}
+
+.confirmation-preview {
+  min-width: 0;
+}
+
+.privacy-warning {
+  padding: 16px;
+  border: 1px solid #f59e0b;
+  border-radius: 14px;
+  background: #fffbeb;
+  color: #78350f;
+}
+
+.privacy-warning p {
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
+.confirmation-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .directory-header {
   display: flex;
   gap: 16px;

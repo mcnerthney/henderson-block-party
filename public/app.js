@@ -25,6 +25,8 @@ const qrCode = document.getElementById('qr-code');
 const shareUrl = document.getElementById('share-url');
 const copyLinkButton = document.getElementById('copy-link');
 const shareLinkButton = document.getElementById('share-link');
+const confirmationDialog = document.getElementById('profile-confirmation');
+const confirmationPreview = document.getElementById('confirmation-preview');
 
 function revokePreviewUrl() {
   if (state.previewObjectUrl) {
@@ -214,12 +216,8 @@ async function submitProfile(event) {
     formData.set('photo', state.selectedPhotoFile, state.selectedPhotoFile.name);
   }
 
-  const description = (formData.get('description') || '').toString().trim();
-  const photoEntry = formData.get('photo');
-  const hasPhoto = Boolean(photoEntry && typeof photoEntry === 'object' && 'size' in photoEntry && photoEntry.size > 0);
-
-  if (!hasPhoto && !description) {
-    formStatus.textContent = 'Please add either a photo or a description.';
+  const confirmed = await confirmProfile(formData);
+  if (!confirmed) {
     return;
   }
 
@@ -236,6 +234,33 @@ async function submitProfile(event) {
 
     if (!response.ok) {
       throw new Error(payload.error || 'Unable to save your profile.');
+    }
+
+    function confirmProfile(formData) {
+      const previewNeighbor = {
+        name: formData.get('name').toString().trim(),
+        description: formData.get('description').toString().trim(),
+        address: formData.get('address').toString().trim(),
+        interests: (formData.get('interests') || '').toString().split(',').map((item) => item.trim()).filter(Boolean),
+        phone: formData.get('phone').toString().trim(),
+        email: formData.get('email').toString().trim(),
+        petNames: formData.get('petNames').toString().trim(),
+        photoUrl: null
+      };
+      confirmationPreview.replaceChildren(createNeighborCard(previewNeighbor));
+      const photoEntry = formData.get('photo');
+      if (photoEntry && typeof photoEntry === 'object' && photoEntry.size > 0) {
+        const previewPhoto = document.createElement('img');
+        previewPhoto.className = 'card__photo';
+        previewPhoto.src = state.previewObjectUrl || URL.createObjectURL(photoEntry);
+        previewPhoto.alt = previewNeighbor.name;
+        confirmationPreview.querySelector('.card__photo')?.replaceWith(previewPhoto);
+      }
+
+      confirmationDialog.showModal();
+      return new Promise((resolve) => {
+        confirmationDialog.addEventListener('close', () => resolve(confirmationDialog.returnValue === 'confirm'), { once: true });
+      });
     }
 
     formStatus.textContent = `Saved! ${payload.neighbor.name} is now in the directory.`;

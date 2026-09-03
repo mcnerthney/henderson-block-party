@@ -57,7 +57,7 @@
             <span>Photo upload</span>
             <input id="photo" name="photo" type="file" accept="image/*" capture="user" />
           </label>
-          <p class="field-help">Add a photo or a description. You only need one of them.</p>
+          <p class="field-help">Only your name is required. Everything else is optional.</p>
 
           <div class="camera-tools">
             <button class="button button--ghost" id="start-camera" type="button">Take a pic</button>
@@ -146,6 +146,28 @@
       </section>
     </section>
   </main>
+
+  <dialog id="profile-confirmation" class="confirmation-dialog" aria-labelledby="confirmation-title">
+    <form method="dialog" class="confirmation-dialog__content">
+      <p class="eyebrow">Review before posting</p>
+      <h2 id="confirmation-title">Is this how you want your profile to appear?</h2>
+      <div id="confirmation-preview" class="confirmation-preview"></div>
+      <div class="privacy-warning">
+        <strong>Public website warning</strong>
+        <p>
+          This directory is public and does not require a password. Do not enter sensitive
+          personally identifiable information (PII), such as a full address, private phone number,
+          or personal email, unless you are comfortable sharing it publicly.
+        </p>
+      </div>
+      <div class="confirmation-actions">
+        <button class="button button--ghost" value="cancel" type="submit">Go back</button>
+        <button class="button button--primary" id="confirm-profile" value="confirm" type="submit">
+          Publish profile
+        </button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="app.js"></script>
 </body>
