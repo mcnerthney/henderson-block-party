@@ -54,6 +54,11 @@
         <h2 id="join-title">Add your photo and details</h2>
         <form id="join-form" class="form">
           <label class="field">
+            <span>Name</span>
+            <input name="name" type="text" placeholder="Daniel" maxlength="60" required />
+          </label>
+
+          <label class="field">
             <span>Photo upload</span>
             <input id="photo" name="photo" type="file" accept="image/*" capture="user" />
           </label>
@@ -73,11 +78,6 @@
           <div class="photo-preview" id="photo-preview" hidden>
             <img id="preview-image" alt="Preview of selected photo" />
           </div>
-
-          <label class="field">
-            <span>Name</span>
-            <input name="name" type="text" placeholder="Daniel" maxlength="60" required />
-          </label>
 
           <label class="field">
             <span>Description</span>
