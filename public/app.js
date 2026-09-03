@@ -72,6 +72,7 @@ function setSelectedPhoto(file) {
   if (!file) {
     previewContainer.hidden = true;
     previewImage.removeAttribute('src');
+    cameraPreview.hidden = false;
     updatePhotoControls();
     return;
   }
@@ -79,6 +80,8 @@ function setSelectedPhoto(file) {
   state.previewObjectUrl = URL.createObjectURL(file);
   previewImage.src = state.previewObjectUrl;
   previewContainer.hidden = false;
+  cameraPreview.hidden = true;
+  cameraPanel.hidden = false;
   updatePhotoControls();
 }
 
@@ -306,6 +309,7 @@ async function startCamera() {
   });
 
   cameraPreview.srcObject = state.cameraStream;
+  cameraPreview.hidden = false;
   cameraPanel.hidden = false;
   setSelectedPhoto(null);
 }
