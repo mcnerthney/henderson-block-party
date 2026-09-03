@@ -236,33 +236,6 @@ async function submitProfile(event) {
       throw new Error(payload.error || 'Unable to save your profile.');
     }
 
-    function confirmProfile(formData) {
-      const previewNeighbor = {
-        name: formData.get('name').toString().trim(),
-        description: formData.get('description').toString().trim(),
-        address: formData.get('address').toString().trim(),
-        interests: (formData.get('interests') || '').toString().split(',').map((item) => item.trim()).filter(Boolean),
-        phone: formData.get('phone').toString().trim(),
-        email: formData.get('email').toString().trim(),
-        petNames: formData.get('petNames').toString().trim(),
-        photoUrl: null
-      };
-      confirmationPreview.replaceChildren(createNeighborCard(previewNeighbor));
-      const photoEntry = formData.get('photo');
-      if (photoEntry && typeof photoEntry === 'object' && photoEntry.size > 0) {
-        const previewPhoto = document.createElement('img');
-        previewPhoto.className = 'card__photo';
-        previewPhoto.src = state.previewObjectUrl || URL.createObjectURL(photoEntry);
-        previewPhoto.alt = previewNeighbor.name;
-        confirmationPreview.querySelector('.card__photo')?.replaceWith(previewPhoto);
-      }
-
-      confirmationDialog.showModal();
-      return new Promise((resolve) => {
-        confirmationDialog.addEventListener('close', () => resolve(confirmationDialog.returnValue === 'confirm'), { once: true });
-      });
-    }
-
     formStatus.textContent = `Saved! ${payload.neighbor.name} is now in the directory.`;
     resetForm();
     await loadNeighbors();
@@ -271,6 +244,33 @@ async function submitProfile(event) {
   } finally {
     submitButton.disabled = false;
   }
+}
+
+function confirmProfile(formData) {
+  const previewNeighbor = {
+    name: (formData.get('name') || '').toString().trim(),
+    description: (formData.get('description') || '').toString().trim(),
+    address: (formData.get('address') || '').toString().trim(),
+    interests: (formData.get('interests') || '').toString().split(',').map((item) => item.trim()).filter(Boolean),
+    phone: (formData.get('phone') || '').toString().trim(),
+    email: (formData.get('email') || '').toString().trim(),
+    petNames: (formData.get('petNames') || '').toString().trim(),
+    photoUrl: null
+  };
+  confirmationPreview.replaceChildren(createNeighborCard(previewNeighbor));
+  const photoEntry = formData.get('photo');
+  if (photoEntry && typeof photoEntry === 'object' && photoEntry.size > 0) {
+    const previewPhoto = document.createElement('img');
+    previewPhoto.className = 'card__photo';
+    previewPhoto.src = state.previewObjectUrl || URL.createObjectURL(photoEntry);
+    previewPhoto.alt = previewNeighbor.name;
+    confirmationPreview.querySelector('.card__photo')?.replaceWith(previewPhoto);
+  }
+
+  confirmationDialog.showModal();
+  return new Promise((resolve) => {
+    confirmationDialog.addEventListener('close', () => resolve(confirmationDialog.returnValue === 'confirm'), { once: true });
+  });
 }
 
 function previewPhoto() {
