@@ -111,6 +111,11 @@ function renderNeighbors() {
 
   resultCount.textContent = formatCount(visibleNeighbors.length);
   emptyState.hidden = visibleNeighbors.length > 0;
+  if (visibleNeighbors.length === 0) {
+    emptyState.textContent = searchTerm
+      ? `No neighbors match "${state.searchTerm.trim()}". Try a different name, address, or interest.`
+      : 'Nobody has joined yet. Be the first neighbor in the directory.';
+  }
   cards.replaceChildren(...visibleNeighbors.map(createNeighborCard));
 }
 
