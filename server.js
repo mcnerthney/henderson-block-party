@@ -156,7 +156,7 @@ async function deleteUploadedPhoto(photoUrl) {
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 5 * 1024 * 1024
+    fileSize: 25 * 1024 * 1024
   },
   fileFilter: (req, file, callback) => {
     if (!file.mimetype.startsWith('image/')) {
@@ -340,7 +340,7 @@ app.delete('/api/admin/neighbors/:id', requireAdmin, async (req, res) => {
 
 app.use((error, req, res, next) => {
   if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
-    res.status(400).json({ error: 'Photo must be 5 MB or smaller.' });
+    res.status(400).json({ error: 'Photo must be 25 MB or smaller.' });
     return;
   }
 
