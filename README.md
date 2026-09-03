@@ -30,7 +30,24 @@ For guests on the same Wi-Fi, open the app from your computer using your local n
 - Default admin code: `dan`
 - To change it, start the server with `ADMIN_CODE=your-code npm start`
 
+## Google Cloud Run deployment
+
+- This app supports persistent deployment on Cloud Run using Google Cloud Storage.
+- Set `GCS_BUCKET_NAME` to a bucket that stores `neighbors.json` plus uploaded photos under `uploads/`.
+- Optional: set `GCS_DATA_OBJECT` if you want a different JSON object path than `neighbors.json`.
+
+Example deployment:
+
+```bash
+gcloud run deploy henderson-block-party \
+  --source . \
+  --region us-west1 \
+  --allow-unauthenticated \
+  --set-env-vars ADMIN_CODE=dan,GCS_BUCKET_NAME=your-bucket-name
+```
+
 ## Data storage
 
-- Profiles are stored in `data/neighbors.json`
-- Uploaded images are stored in `public/uploads/`
+- Local development stores profiles in `data/neighbors.json`
+- Local development stores uploaded images in `public/uploads/`
+- Cloud Run stores profiles and uploads in the configured Google Cloud Storage bucket

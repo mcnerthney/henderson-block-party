@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const express = require('express');
 const fs = require('fs');
+const { Storage } = require('@google-cloud/storage');
 const multer = require('multer');
 const path = require('path');
 
@@ -11,25 +12,15 @@ const publicDir = path.join(__dirname, 'public');
 const uploadsDir = path.join(publicDir, 'uploads');
 const dataDir = path.join(__dirname, 'data');
 const dataFile = path.join(dataDir, 'neighbors.json');
+const bucketName = process.env.GCS_BUCKET_NAME || '';
+const dataObjectName = process.env.GCS_DATA_OBJECT || 'neighbors.json';
+const uploadPrefix = 'uploads';
+const useGcs = Boolean(bucketName);
+const storageClient = useGcs ? new Storage() : null;
+const bucket = useGcs ? storageClient.bucket(bucketName) : null;
 
 fs.mkdirSync(uploadsDir, { recursive: true });
 fs.mkdirSync(dataDir, { recursive: true });
-
-if (!fs.existsSync(dataFile)) {
-  fs.writeFileSync(dataFile, '[]\n');
-}
-
-function loadNeighbors() {
-  const fileContents = fs.readFileSync(dataFile, 'utf8');
-  return JSON.parse(fileContents).map((neighbor) => ({
-    ...neighbor,
-    description: neighbor.description || neighbor.intro || ''
-  }));
-}
-
-function saveNeighbors(neighbors) {
-  fs.writeFileSync(dataFile, `${JSON.stringify(neighbors, null, 2)}\n`);
-}
 
 function createHttpError(statusCode, message) {
   const error = new Error(message);
@@ -37,19 +28,53 @@ function createHttpError(statusCode, message) {
   return error;
 }
 
-function deleteUploadedPhoto(photoUrl) {
-  if (!photoUrl) {
+function mapNeighbor(neighbor) {
+  return {
+    ...neighbor,
+    description: neighbor.description || neighbor.intro || ''
+  };
+}
+
+async function ensureDataStoreInitialized() {
+  if (!useGcs) {
+    if (!fs.existsSync(dataFile)) {
+      fs.writeFileSync(dataFile, '[]\n');
+    }
+
     return;
   }
 
-  const resolvedUploadsDir = path.resolve(uploadsDir);
-  const resolvedPhotoPath = path.resolve(publicDir, `.${photoUrl}`);
+  const dataObject = bucket.file(dataObjectName);
+  const [exists] = await dataObject.exists();
 
-  if (!resolvedPhotoPath.startsWith(`${resolvedUploadsDir}${path.sep}`)) {
-    throw createHttpError(400, 'Invalid uploaded photo path.');
+  if (!exists) {
+    await dataObject.save('[]\n', {
+      contentType: 'application/json'
+    });
+  }
+}
+
+async function loadNeighbors() {
+  if (!useGcs) {
+    const fileContents = fs.readFileSync(dataFile, 'utf8');
+    return JSON.parse(fileContents).map(mapNeighbor);
   }
 
-  fs.rmSync(resolvedPhotoPath, { force: true });
+  const [fileContents] = await bucket.file(dataObjectName).download();
+  return JSON.parse(fileContents.toString('utf8')).map(mapNeighbor);
+}
+
+async function saveNeighbors(neighbors) {
+  const serializedNeighbors = `${JSON.stringify(neighbors, null, 2)}\n`;
+
+  if (!useGcs) {
+    fs.writeFileSync(dataFile, serializedNeighbors);
+    return;
+  }
+
+  await bucket.file(dataObjectName).save(serializedNeighbors, {
+    contentType: 'application/json'
+  });
 }
 
 function sanitizeFilenamePart(value) {
@@ -61,17 +86,75 @@ function sanitizeFilenamePart(value) {
     .slice(0, 40);
 }
 
-const storage = multer.diskStorage({
-  destination: uploadsDir,
-  filename: (req, file, callback) => {
-    const extension = path.extname(file.originalname).toLowerCase() || '.jpg';
-    const namePart = sanitizeFilenamePart(req.body.name || 'neighbor');
-    callback(null, `${namePart || 'neighbor'}-${crypto.randomUUID()}${extension}`);
+function buildUploadFilename(name, originalName) {
+  const extension = path.extname(originalName).toLowerCase() || '.jpg';
+  const namePart = sanitizeFilenamePart(name || 'neighbor');
+  return `${namePart || 'neighbor'}-${crypto.randomUUID()}${extension}`;
+}
+
+function getPhotoStorageKey(photoUrl) {
+  if (!photoUrl) {
+    return null;
   }
-});
+
+  const normalizedUrl = new URL(photoUrl, 'http://localhost');
+
+  if (!normalizedUrl.pathname.startsWith('/uploads/')) {
+    throw createHttpError(400, 'Invalid uploaded photo path.');
+  }
+
+  const filename = path.posix.basename(normalizedUrl.pathname);
+  return `${uploadPrefix}/${filename}`;
+}
+
+async function saveUploadedPhoto(file, name) {
+  if (!file) {
+    return null;
+  }
+
+  const filename = buildUploadFilename(name, file.originalname);
+  const photoUrl = `/uploads/${filename}`;
+
+  if (!useGcs) {
+    fs.writeFileSync(path.join(uploadsDir, filename), file.buffer);
+    return photoUrl;
+  }
+
+  await bucket.file(`${uploadPrefix}/${filename}`).save(file.buffer, {
+    contentType: file.mimetype,
+    resumable: false,
+    metadata: {
+      cacheControl: 'public, max-age=3600'
+    }
+  });
+
+  return photoUrl;
+}
+
+async function deleteUploadedPhoto(photoUrl) {
+  const photoStorageKey = getPhotoStorageKey(photoUrl);
+
+  if (!photoStorageKey) {
+    return;
+  }
+
+  if (!useGcs) {
+    const localPhotoPath = path.resolve(publicDir, `.${photoUrl}`);
+    const resolvedUploadsDir = path.resolve(uploadsDir);
+
+    if (!localPhotoPath.startsWith(`${resolvedUploadsDir}${path.sep}`)) {
+      throw createHttpError(400, 'Invalid uploaded photo path.');
+    }
+
+    fs.rmSync(localPhotoPath, { force: true });
+    return;
+  }
+
+  await bucket.file(photoStorageKey).delete({ ignoreNotFound: true });
+}
 
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024
   },
@@ -125,12 +208,39 @@ app.get('/admin/', (req, res) => {
   res.sendFile(path.join(publicDir, 'admin.html'));
 });
 
-app.get('/api/health', (req, res) => {
-  res.json({ ok: true });
+app.get('/uploads/:filename', async (req, res, next) => {
+  try {
+    if (!useGcs) {
+      res.sendFile(path.join(uploadsDir, path.basename(req.params.filename)));
+      return;
+    }
+
+    const objectName = `${uploadPrefix}/${path.basename(req.params.filename)}`;
+    const file = bucket.file(objectName);
+    const [exists] = await file.exists();
+
+    if (!exists) {
+      throw createHttpError(404, 'Photo not found.');
+    }
+
+    res.set('Cache-Control', 'public, max-age=3600');
+    file.createReadStream()
+      .on('error', next)
+      .pipe(res);
+  } catch (error) {
+    next(error);
+  }
 });
 
-app.get('/api/neighbors', (req, res) => {
-  const neighbors = loadNeighbors()
+app.get('/api/health', (req, res) => {
+  res.json({
+    ok: true,
+    storage: useGcs ? 'gcs' : 'local'
+  });
+});
+
+app.get('/api/neighbors', async (req, res) => {
+  const neighbors = (await loadNeighbors())
     .slice()
     .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt));
 
@@ -141,115 +251,96 @@ app.get('/api/admin/session', requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/api/neighbors', upload.single('photo'), (req, res, next) => {
-  try {
-    const name = readTextField(req.body.name, 'Name', 60);
-    const description = readTextField(req.body.description || req.body.intro, 'Description', 100);
-    const address = readTextField(req.body.address, 'House or address', 100);
-    const interests = parseInterests(req.body.interests);
+app.post('/api/neighbors', upload.single('photo'), async (req, res) => {
+  const name = readTextField(req.body.name, 'Name', 60);
+  const description = readTextField(req.body.description || req.body.intro, 'Description', 100);
+  const address = readTextField(req.body.address, 'House or address', 100);
+  const interests = parseInterests(req.body.interests);
 
-    if (!name) {
-      throw new Error('Name is required.');
-    }
-
-    if (!address) {
-      throw new Error('House or address is required.');
-    }
-
-    if (!req.file && !description) {
-      throw new Error('Either a photo or a description is required.');
-    }
-
-    const neighbor = {
-      id: crypto.randomUUID(),
-      name,
-      description,
-      address,
-      interests,
-      photoUrl: req.file ? `/uploads/${req.file.filename}` : null,
-      createdAt: new Date().toISOString()
-    };
-
-    const neighbors = loadNeighbors();
-    neighbors.unshift(neighbor);
-    saveNeighbors(neighbors);
-
-    res.status(201).json({ neighbor });
-  } catch (error) {
-    next(error);
+  if (!name) {
+    throw new Error('Name is required.');
   }
+
+  if (!address) {
+    throw new Error('House or address is required.');
+  }
+
+  if (!req.file && !description) {
+    throw new Error('Either a photo or a description is required.');
+  }
+
+  const photoUrl = await saveUploadedPhoto(req.file, name);
+  const neighbor = {
+    id: crypto.randomUUID(),
+    name,
+    description,
+    address,
+    interests,
+    photoUrl,
+    createdAt: new Date().toISOString()
+  };
+
+  const neighbors = await loadNeighbors();
+  neighbors.unshift(neighbor);
+  await saveNeighbors(neighbors);
+
+  res.status(201).json({ neighbor });
 });
 
-app.delete('/api/admin/neighbors/:id/photo', requireAdmin, (req, res, next) => {
-  try {
-    const neighbors = loadNeighbors();
-    const neighbor = neighbors.find((entry) => entry.id === req.params.id);
+app.delete('/api/admin/neighbors/:id/photo', requireAdmin, async (req, res) => {
+  const neighbors = await loadNeighbors();
+  const neighbor = neighbors.find((entry) => entry.id === req.params.id);
 
-    if (!neighbor) {
-      throw createHttpError(404, 'Neighbor not found.');
-    }
+  if (!neighbor) {
+    throw createHttpError(404, 'Neighbor not found.');
+  }
 
-    if (!neighbor.photoUrl) {
-      res.json({ neighbor });
-      return;
-    }
-
-    if (!neighbor.description) {
-      throw createHttpError(400, 'Cannot remove the photo unless this profile has a description. Delete the profile instead.');
-    }
-
-    deleteUploadedPhoto(neighbor.photoUrl);
-    neighbor.photoUrl = null;
-    saveNeighbors(neighbors);
-
+  if (!neighbor.photoUrl) {
     res.json({ neighbor });
-  } catch (error) {
-    next(error);
+    return;
   }
+
+  if (!neighbor.description) {
+    throw createHttpError(400, 'Cannot remove the photo unless this profile has a description. Delete the profile instead.');
+  }
+
+  await deleteUploadedPhoto(neighbor.photoUrl);
+  neighbor.photoUrl = null;
+  await saveNeighbors(neighbors);
+
+  res.json({ neighbor });
 });
 
-app.delete('/api/admin/neighbors/:id/name', requireAdmin, (req, res, next) => {
-  try {
-    const neighbors = loadNeighbors();
-    const neighbor = neighbors.find((entry) => entry.id === req.params.id);
+app.delete('/api/admin/neighbors/:id/name', requireAdmin, async (req, res) => {
+  const neighbors = await loadNeighbors();
+  const neighbor = neighbors.find((entry) => entry.id === req.params.id);
 
-    if (!neighbor) {
-      throw createHttpError(404, 'Neighbor not found.');
-    }
-
-    neighbor.name = 'Neighbor';
-    saveNeighbors(neighbors);
-
-    res.json({ neighbor });
-  } catch (error) {
-    next(error);
+  if (!neighbor) {
+    throw createHttpError(404, 'Neighbor not found.');
   }
+
+  neighbor.name = 'Neighbor';
+  await saveNeighbors(neighbors);
+
+  res.json({ neighbor });
 });
 
-app.delete('/api/admin/neighbors/:id', requireAdmin, (req, res, next) => {
-  try {
-    const neighbors = loadNeighbors();
-    const index = neighbors.findIndex((entry) => entry.id === req.params.id);
+app.delete('/api/admin/neighbors/:id', requireAdmin, async (req, res) => {
+  const neighbors = await loadNeighbors();
+  const index = neighbors.findIndex((entry) => entry.id === req.params.id);
 
-    if (index === -1) {
-      throw createHttpError(404, 'Neighbor not found.');
-    }
-
-    const [deletedNeighbor] = neighbors.splice(index, 1);
-    deleteUploadedPhoto(deletedNeighbor.photoUrl);
-    saveNeighbors(neighbors);
-
-    res.json({ deletedId: deletedNeighbor.id });
-  } catch (error) {
-    next(error);
+  if (index === -1) {
+    throw createHttpError(404, 'Neighbor not found.');
   }
+
+  const [deletedNeighbor] = neighbors.splice(index, 1);
+  await deleteUploadedPhoto(deletedNeighbor.photoUrl);
+  await saveNeighbors(neighbors);
+
+  res.json({ deletedId: deletedNeighbor.id });
 });
 
 app.use((error, req, res, next) => {
-  if (req.file) {
-    fs.rmSync(req.file.path, { force: true });
-  }
-
   if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
     res.status(400).json({ error: 'Photo must be 5 MB or smaller.' });
     return;
@@ -258,6 +349,14 @@ app.use((error, req, res, next) => {
   res.status(error.statusCode || 400).json({ error: error.message });
 });
 
-app.listen(port, () => {
-  console.log(`Neighborhood Who's Who app running at http://localhost:${port}`);
+async function start() {
+  await ensureDataStoreInitialized();
+  app.listen(port, () => {
+    console.log(`Neighborhood Who's Who app running at http://localhost:${port}`);
+  });
+}
+
+start().catch((error) => {
+  console.error(error);
+  process.exit(1);
 });
