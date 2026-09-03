@@ -24,6 +24,7 @@ const previewContainer = document.getElementById('photo-preview');
 const previewImage = document.getElementById('preview-image');
 const qrCode = document.getElementById('qr-code');
 const shareUrl = document.getElementById('share-url');
+const eventBanner = document.getElementById('event-banner');
 const copyLinkButton = document.getElementById('copy-link');
 const shareLinkButton = document.getElementById('share-link');
 const confirmationDialog = document.getElementById('profile-confirmation');
@@ -65,6 +66,14 @@ function updateShareSection() {
   const currentUrl = window.location.origin;
   shareUrl.textContent = currentUrl;
   qrCode.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(currentUrl)}`;
+}
+
+function updateEventBanner() {
+  if (!eventBanner) {
+    return;
+  }
+  const hideAfter = new Date('2026-09-24T00:00:00');
+  eventBanner.hidden = Date.now() >= hideAfter.getTime();
 }
 
 function setSelectedPhoto(file) {
@@ -425,6 +434,7 @@ shareLinkButton.addEventListener('click', () => {
 });
 
 updateShareSection();
+updateEventBanner();
 updatePhotoControls();
 loadNeighbors().catch((error) => {
   formStatus.textContent = error.message;
