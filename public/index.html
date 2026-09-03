@@ -166,6 +166,17 @@
     </form>
   </dialog>
 
+  <dialog id="save-error-dialog" class="confirmation-dialog" aria-labelledby="save-error-title">
+    <form method="dialog" class="confirmation-dialog__content">
+      <p class="eyebrow">Profile not saved</p>
+      <h2 id="save-error-title">We couldn't save your profile</h2>
+      <p id="save-error-message" class="callout-copy"></p>
+      <div class="confirmation-actions">
+        <button class="button button--primary" value="close" type="submit">Close</button>
+      </div>
+    </form>
+  </dialog>
+
   <script src="app.js"></script>
 </body>
 </html>

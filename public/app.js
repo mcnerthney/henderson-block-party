@@ -28,6 +28,8 @@ const copyLinkButton = document.getElementById('copy-link');
 const shareLinkButton = document.getElementById('share-link');
 const confirmationDialog = document.getElementById('profile-confirmation');
 const confirmationPreview = document.getElementById('confirmation-preview');
+const saveErrorDialog = document.getElementById('save-error-dialog');
+const saveErrorMessage = document.getElementById('save-error-message');
 
 function revokePreviewUrl() {
   if (state.previewObjectUrl) {
@@ -245,6 +247,8 @@ async function submitProfile(event) {
     await loadNeighbors();
   } catch (error) {
     formStatus.textContent = error.message;
+    saveErrorMessage.textContent = error.message;
+    saveErrorDialog.showModal();
   } finally {
     submitButton.disabled = false;
   }
