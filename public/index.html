@@ -23,53 +23,6 @@
   </header>
 
   <main class="layout">
-    <section class="panel auth-panel" aria-labelledby="login-title">
-      <p class="eyebrow">Private neighborhood directory</p>
-      <h2 id="login-title">Sign in to see who's who</h2>
-      <p class="callout-copy">Profile information is only available to signed-in neighbors.</p>
-      <div class="auth-actions">
-        <button class="button button--primary" id="google-login" type="button">Continue with Google</button>
-        <button class="button button--ghost" id="apple-login" type="button">Continue with Apple</button>
-      </div>
-      <form id="email-login-form" class="auth-form">
-        <label class="field">
-          <span>Email</span>
-          <input id="email-login" type="email" autocomplete="email" required />
-        </label>
-        <label class="field">
-          <span>Password</span>
-          <input id="password-login" type="password" autocomplete="current-password" minlength="6" required />
-        </label>
-        <div class="auth-actions">
-          <button class="button button--primary" type="submit">Sign in with email</button>
-          <button class="button button--ghost" id="email-signup" type="button">Create account</button>
-        </div>
-      </form>
-      <form id="phone-login-form" class="auth-form">
-        <label class="field">
-          <span>Phone number</span>
-          <input id="phone-login" type="tel" autocomplete="tel" placeholder="+1 555 555 5555" required />
-        </label>
-        <div id="recaptcha-container"></div>
-        <button class="button button--ghost button--full" type="submit">Send phone code</button>
-      </form>
-      <div id="phone-code-section" class="auth-form" hidden>
-        <label class="field">
-          <span>Verification code</span>
-          <input id="phone-code" type="text" inputmode="numeric" autocomplete="one-time-code" />
-        </label>
-        <button class="button button--primary button--full" id="verify-phone" type="button">Verify phone</button>
-      </div>
-      <p class="form-status" id="auth-status" role="status" aria-live="polite"></p>
-    </section>
-
-    <section class="panel auth-user-panel" id="auth-user-panel" hidden>
-      <p class="eyebrow">Signed in</p>
-      <strong id="auth-user-label"></strong>
-      <button class="button button--ghost" id="logout" type="button">Sign out</button>
-    </section>
-
-    <div id="protected-content" hidden>
     <section class="panel panel--accent" aria-label="Party access">
       <div>
         <p class="eyebrow">Party access</p>
@@ -177,11 +130,8 @@
         </p>
       </section>
     </section>
-    </div>
   </main>
 
-  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-auth-compat.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -126,32 +126,6 @@ input {
   padding: 24px;
 }
 
-.auth-panel {
-  max-width: 620px;
-  margin: 0 auto 20px;
-}
-
-.auth-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.auth-form {
-  display: grid;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.auth-user-panel {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
 .panel--accent {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 180px;

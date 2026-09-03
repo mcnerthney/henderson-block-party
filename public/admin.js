@@ -58,7 +58,7 @@ function createPhoto(neighbor) {
   if (neighbor.photoUrl) {
     const image = document.createElement('img');
     image.className = 'card__photo';
-    image.src = `${neighbor.photoUrl}?adminCode=${encodeURIComponent(state.adminCode)}`;
+    image.src = neighbor.photoUrl;
     image.alt = neighbor.name;
     return image;
   }

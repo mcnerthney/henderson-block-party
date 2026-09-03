@@ -46,19 +46,6 @@ gcloud run deploy henderson-block-party \
   --set-env-vars ADMIN_CODE=dan,GCS_BUCKET_NAME=your-bucket-name
 ```
 
-## Firebase Authentication
-
-The directory requires Firebase Authentication before showing profiles. Enable Google,
-Apple, Email/Password, and Phone providers in Firebase Console. Add the Cloud Run URL
-to Firebase Authentication authorized domains, then deploy with these variables:
-
-```bash
-gcloud run deploy henderson-block-party \
-  --set-env-vars FIREBASE_API_KEY=...,FIREBASE_AUTH_DOMAIN=...,FIREBASE_PROJECT_ID=...,FIREBASE_APP_ID=...
-```
-
-The server uses Cloud Run's default service account to verify Firebase ID tokens.
-
 ## Data storage
 
 - Local development stores profiles in `data/neighbors.json`
