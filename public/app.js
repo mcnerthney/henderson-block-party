@@ -14,6 +14,7 @@ const joinForm = document.getElementById('join-form');
 const formStatus = document.getElementById('form-status');
 const submitButton = document.getElementById('submit-button');
 const photoInput = document.getElementById('photo');
+const uploadPhotoButton = document.getElementById('upload-photo');
 const startCameraButton = document.getElementById('start-camera');
 const capturePhotoButton = document.getElementById('capture-photo');
 const retakePhotoButton = document.getElementById('retake-photo');
@@ -281,6 +282,10 @@ function previewPhoto() {
     return;
   }
 
+  function openPhotoPicker() {
+    photoInput.click();
+  }
+
   stopCameraStream();
   cameraPanel.hidden = true;
   setSelectedPhoto(file);
@@ -369,6 +374,7 @@ searchInput.addEventListener('input', (event) => {
 });
 
 photoInput.addEventListener('change', previewPhoto);
+uploadPhotoButton.addEventListener('click', openPhotoPicker);
 joinForm.addEventListener('submit', submitProfile);
 startCameraButton.addEventListener('click', () => {
   startCamera().catch((error) => {
