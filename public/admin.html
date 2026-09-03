@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neighborhood Who's Who Admin</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero__content">
+      <p class="eyebrow">Organizer admin</p>
+      <h1>Moderate the directory</h1>
+      <div class="hero__actions">
+        <a class="button button--primary" href="index.html">Back to Who's Who</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout admin-layout">
+    <section class="panel admin-auth" aria-labelledby="admin-access-title">
+      <div>
+        <p class="eyebrow">Access</p>
+        <h2 id="admin-access-title">Enter the admin code</h2>
+        <p class="callout-copy">Use this page to remove bad photos, replace a bad name, or delete an entire profile.</p>
+      </div>
+
+      <form id="admin-form" class="form admin-auth__form">
+        <label class="field">
+          <span>Admin code</span>
+          <input id="admin-code" name="adminCode" type="password" autocomplete="current-password" required />
+        </label>
+
+        <div class="admin-auth__actions">
+          <button class="button button--primary" type="submit">Unlock admin</button>
+          <button class="button button--ghost" id="logout-button" type="button">Log out</button>
+        </div>
+        <p class="form-status" id="admin-status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="panel admin-panel" aria-labelledby="moderation-title">
+      <div class="directory-header">
+        <div>
+          <p class="eyebrow">Moderation</p>
+          <h2 id="moderation-title">Manage profiles</h2>
+        </div>
+        <p class="count" id="admin-count">0 profiles</p>
+      </div>
+
+      <p class="field-help">
+        Remove photo keeps the rest of the profile. Remove name changes it to “Neighbor”. Delete profile removes everything.
+      </p>
+
+      <div class="admin-list" id="admin-list"></div>
+      <p class="empty-state" id="admin-empty">Enter the admin code to load profiles.</p>
+    </section>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>

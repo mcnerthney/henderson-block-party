@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Henderson Neighborhood Block Party</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero flyer-hero">
+    <div class="hero__content flyer-hero__content">
+      <h1>Henderson Neighborhood Block Party</h1>
+      <p class="hero__copy">
+        Join your neighbors for an easygoing afternoon at the park.
+      </p>
+    </div>
+  </header>
+
+  <main class="layout flyer-layout">
+    <section class="panel flyer-panel">
+      <p class="eyebrow">You're invited</p>
+      <div class="flyer-details">
+        <div class="flyer-detail">
+          <span class="flyer-label">Where</span>
+          <strong>Hazelview Park</strong>
+          <span>Heritage Loop</span>
+        </div>
+        <div class="flyer-detail">
+          <span class="flyer-label">When</span>
+          <strong>Sept 23, 2026</strong>
+          <span>Starting at 4pm</span>
+        </div>
+      </div>
+      <div class="flyer-bring-list">
+        <p>Bring a chair</p>
+        <p>Bring a dish</p>
+        <p>Bring a drink</p>
+      </div>
+      <section class="flyer-share" aria-label="Neighborhood Who's Who link">
+        <img id="flyer-qr-code" class="flyer-qr-code" alt="QR code for the Neighborhood Who's Who page" />
+        <p class="flyer-share-label">Please RSVP if you can by scanning this code and creating your profile</p>
+        <p class="flyer-home-url" id="flyer-home-url"></p>
+      </section>
+      <p class="flyer-callout">Bring yourself, say hello, and meet more of the neighborhood.</p>
+    </section>
+  </main>
+  <script>
+    const homeUrl = new URL('/index.html', window.location.origin).toString();
+    document.getElementById('flyer-home-url').textContent = homeUrl;
+    document.getElementById('flyer-qr-code').src =
+      `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(homeUrl)}`;
+  </script>
+</body>
+</html>

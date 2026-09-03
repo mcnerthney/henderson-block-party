@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neighborhood Who's Who</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero__content">
+      <h1>Henderson Neighborhood Who's Who</h1>
+      <p class="hero__copy">
+        Forget a name? Scan the QR code, browse faces, and quickly match neighbors with names,
+        houses, and shared interests.
+      </p>
+      <div class="hero__actions">
+        <a class="button button--primary" href="#join-form">Add yourself</a>
+        <a class="button button--ghost" href="#directory">Browse the directory</a>
+        <a class="button button--ghost" href="fun-facts.html">Fun facts page</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel panel--accent" aria-label="Party access">
+      <div>
+        <p class="eyebrow">Party access</p>
+        <p><strong>FORGET A NAME? Scan here — see who's who in the neighborhood.</strong></p>
+        <p class="share-url" id="share-url"></p>
+        <div class="share-actions">
+          <button class="button button--primary" id="copy-link" type="button">Copy link</button>
+          <button class="button button--ghost" id="share-link" type="button">Share</button>
+        </div>
+      </div>
+      <img id="qr-code" class="qr-code" alt="QR code for this directory" />
+    </section>
+
+    <section class="panel panel--link-callout" aria-labelledby="fun-facts-title">
+      <div>
+        <p class="eyebrow">Neighborhood history</p>
+        <h2 id="fun-facts-title">Want the Henderson story?</h2>
+        <p class="callout-copy">
+          Open the fun facts page for Hood River orchard history, Henderson trivia, and a printable
+          party sign.
+        </p>
+      </div>
+      <a class="button button--primary" href="fun-facts.html">Open fun facts page</a>
+    </section>
+
+    <section class="grid">
+      <section class="panel" aria-labelledby="join-title">
+        <p class="eyebrow">Join the list</p>
+        <h2 id="join-title">Add your photo and details</h2>
+        <form id="join-form" class="form">
+          <label class="field">
+            <span>Photo upload</span>
+            <input id="photo" name="photo" type="file" accept="image/*" capture="user" />
+          </label>
+          <p class="field-help">Add a photo or a description. You only need one of them.</p>
+
+          <div class="camera-tools">
+            <button class="button button--ghost" id="start-camera" type="button">Take a pic</button>
+            <button class="button button--primary" id="capture-photo" type="button" hidden>Use this photo</button>
+            <button class="button button--ghost" id="retake-photo" type="button" hidden>Retake</button>
+          </div>
+
+          <div class="camera-panel" id="camera-panel" hidden>
+            <video id="camera-preview" autoplay playsinline muted></video>
+            <p class="camera-help">Center your face, then tap “Use this photo.”</p>
+          </div>
+
+          <div class="photo-preview" id="photo-preview" hidden>
+            <img id="preview-image" alt="Preview of selected photo" />
+          </div>
+
+          <label class="field">
+            <span>Name</span>
+            <input name="name" type="text" placeholder="Daniel" maxlength="60" required />
+          </label>
+
+          <label class="field">
+            <span>Description</span>
+            <input
+              name="description"
+              type="text"
+              maxlength="100"
+            />
+          </label>
+
+          <label class="field">
+            <span>House or address</span>
+            <input name="address" type="text" placeholder="214 Oak Street" maxlength="100" required />
+          </label>
+
+          <label class="field">
+            <span>Interests (optional)</span>
+            <input
+              name="interests"
+              type="text"
+              placeholder="bikes, gardening, dogs, kids"
+              maxlength="140"
+            />
+          </label>
+
+          <button class="button button--primary button--full" id="submit-button" type="submit">
+            Save my profile
+          </button>
+          <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="panel" id="directory" aria-labelledby="directory-title">
+        <div class="directory-header">
+          <div>
+            <p class="eyebrow">Find a neighbor</p>
+            <h2 id="directory-title">Search or browse photos</h2>
+          </div>
+          <p class="count" id="result-count">0 neighbors</p>
+        </div>
+
+        <label class="field">
+          <span>Search by name, address, or interest</span>
+          <input id="search" type="search" placeholder="Search Daniel, dogs, Oak Street..." />
+        </label>
+
+        <div class="cards" id="cards"></div>
+        <p class="empty-state" id="empty-state">
+          Nobody has joined yet. Be the first neighbor in the directory.
+        </p>
+      </section>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

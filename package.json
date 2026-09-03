@@ -1,0 +1,13 @@
+{
+  "name": "neighborhood-whos-who",
+  "version": "1.0.0",
+  "description": "Simple shared neighborhood directory for block parties",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "multer": "^2.0.2"
+  }
+}
