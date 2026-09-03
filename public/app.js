@@ -308,9 +308,8 @@ async function submitProfile(event) {
       throw new Error(payload.error || 'Unable to save your profile.');
     }
 
-    formStatus.textContent = `Saved! ${payload.neighbor.name} is now in the directory.`;
+    formStatus.textContent = `Thanks! ${payload.neighbor.name}'s profile was submitted and is awaiting admin approval.`;
     resetForm();
-    await loadNeighbors();
   } catch (error) {
     formStatus.textContent = error.message;
     saveErrorMessage.textContent = error.message;

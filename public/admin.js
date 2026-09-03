@@ -73,7 +73,8 @@ function createPhoto(neighbor) {
 function createActionButton(label, variant, onClick) {
   const button = document.createElement('button');
   button.type = 'button';
-  button.className = variant === 'danger' ? 'button button--danger' : 'button button--ghost';
+  const variantClass = { danger: 'button--danger', primary: 'button--primary', ghost: 'button--ghost' }[variant] || 'button--ghost';
+  button.className = `button ${variantClass}`;
   button.textContent = label;
   button.addEventListener('click', () => {
     onClick().catch((error) => {
@@ -84,7 +85,8 @@ function createActionButton(label, variant, onClick) {
 }
 
 function renderNeighbors() {
-  adminCount.textContent = formatCount(state.neighbors.length);
+  const pendingCount = state.neighbors.filter((neighbor) => neighbor.status === 'pending').length;
+  adminCount.textContent = `${formatCount(state.neighbors.length)} (${pendingCount} pending)`;
   adminEmpty.hidden = state.neighbors.length > 0;
   adminList.replaceChildren(...state.neighbors.map(createAdminCard));
 }
@@ -102,6 +104,11 @@ function createAdminCard(neighbor) {
   title.textContent = neighbor.name;
 
   body.append(title);
+
+  const status = document.createElement('span');
+  status.className = `status-badge status-badge--${neighbor.status || 'approved'}`;
+  status.textContent = (neighbor.status || 'approved').toUpperCase();
+  body.appendChild(status);
 
   const displayDescription = getDisplayDescription(neighbor);
   if (displayDescription) {
@@ -149,6 +156,34 @@ function createAdminCard(neighbor) {
   const actions = document.createElement('div');
   actions.className = 'admin-actions';
 
+  const approveButton = createActionButton('Approve', 'primary', async () => {
+    setStatus('Approving profile...');
+    await adminFetch(`/api/admin/neighbors/${neighbor.id}/approve`, { method: 'POST' });
+    setStatus('Profile approved.');
+    await loadNeighbors();
+  });
+
+  if (neighbor.status === 'approved') {
+    approveButton.disabled = true;
+  }
+
+  const rejectButton = createActionButton('Reject', 'ghost', async () => {
+    const confirmed = window.confirm(`Reject the profile for ${neighbor.name}? It will be hidden from the directory.`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    setStatus('Rejecting profile...');
+    await adminFetch(`/api/admin/neighbors/${neighbor.id}/reject`, { method: 'POST' });
+    setStatus('Profile rejected.');
+    await loadNeighbors();
+  });
+
+  if (neighbor.status === 'rejected') {
+    rejectButton.disabled = true;
+  }
+
   const removePhotoButton = createActionButton('Remove photo', 'ghost', async () => {
     const confirmed = window.confirm(`Remove the photo for ${neighbor.name}?`);
 
@@ -192,14 +227,14 @@ function createAdminCard(neighbor) {
     await loadNeighbors();
   });
 
-  actions.append(removePhotoButton, removeNameButton, deleteProfileButton);
+  actions.append(approveButton, rejectButton, removePhotoButton, removeNameButton, deleteProfileButton);
   body.appendChild(actions);
   card.append(photo, body);
   return card;
 }
 
 async function loadNeighbors() {
-  const payload = await adminFetch('/api/neighbors');
+  const payload = await adminFetch('/api/admin/neighbors');
   state.neighbors = payload.neighbors;
   renderNeighbors();
 }

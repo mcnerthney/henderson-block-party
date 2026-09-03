@@ -31,7 +31,8 @@ function createHttpError(statusCode, message) {
 function mapNeighbor(neighbor) {
   return {
     ...neighbor,
-    description: neighbor.description || neighbor.intro || ''
+    description: neighbor.description || neighbor.intro || '',
+    status: neighbor.status || 'approved'
   };
 }
 
@@ -241,6 +242,14 @@ app.get('/api/health', (req, res) => {
 
 app.get('/api/neighbors', async (req, res) => {
   const neighbors = (await loadNeighbors())
+    .filter((neighbor) => neighbor.status === 'approved')
+    .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt));
+
+  res.json({ neighbors });
+});
+
+app.get('/api/admin/neighbors', requireAdmin, async (req, res) => {
+  const neighbors = (await loadNeighbors())
     .slice()
     .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt));
 
@@ -275,6 +284,7 @@ app.post('/api/neighbors', upload.single('photo'), async (req, res) => {
     email,
     petNames,
     photoUrl,
+    status: 'pending',
     createdAt: new Date().toISOString()
   };
 
@@ -283,6 +293,34 @@ app.post('/api/neighbors', upload.single('photo'), async (req, res) => {
   await saveNeighbors(neighbors);
 
   res.status(201).json({ neighbor });
+});
+
+app.post('/api/admin/neighbors/:id/approve', requireAdmin, async (req, res) => {
+  const neighbors = await loadNeighbors();
+  const neighbor = neighbors.find((entry) => entry.id === req.params.id);
+
+  if (!neighbor) {
+    throw createHttpError(404, 'Neighbor not found.');
+  }
+
+  neighbor.status = 'approved';
+  await saveNeighbors(neighbors);
+
+  res.json({ neighbor });
+});
+
+app.post('/api/admin/neighbors/:id/reject', requireAdmin, async (req, res) => {
+  const neighbors = await loadNeighbors();
+  const neighbor = neighbors.find((entry) => entry.id === req.params.id);
+
+  if (!neighbor) {
+    throw createHttpError(404, 'Neighbor not found.');
+  }
+
+  neighbor.status = 'rejected';
+  await saveNeighbors(neighbors);
+
+  res.json({ neighbor });
 });
 
 app.delete('/api/admin/neighbors/:id/photo', requireAdmin, async (req, res) => {
