@@ -261,14 +261,6 @@ app.post('/api/neighbors', upload.single('photo'), async (req, res) => {
     throw new Error('Name is required.');
   }
 
-  if (!address) {
-    throw new Error('House or address is required.');
-  }
-
-  if (!req.file && !description) {
-    throw new Error('Either a photo or a description is required.');
-  }
-
   const photoUrl = await saveUploadedPhoto(req.file, name);
   const neighbor = {
     id: crypto.randomUUID(),

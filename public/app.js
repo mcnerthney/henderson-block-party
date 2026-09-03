@@ -83,7 +83,7 @@ function matchesSearch(neighbor, term) {
   const haystack = [
     neighbor.name,
     neighbor.description || neighbor.intro,
-    neighbor.address,
+    neighbor.address || '',
     ...(neighbor.interests || [])
   ]
     .join(' ')
@@ -136,18 +136,21 @@ function createNeighborCard(neighbor) {
   const title = document.createElement('h3');
   title.textContent = neighbor.name;
 
-  const address = document.createElement('p');
-  address.className = 'card__address';
-  address.textContent = neighbor.address;
-
-  body.append(title, address);
+  body.appendChild(title);
 
   const displayDescription = getDisplayDescription(neighbor);
   if (displayDescription) {
     const description = document.createElement('p');
     description.className = 'card__description';
     description.textContent = displayDescription;
-    body.insertBefore(description, address);
+    body.appendChild(description);
+  }
+
+  if (neighbor.address) {
+    const address = document.createElement('p');
+    address.className = 'card__address';
+    address.textContent = neighbor.address;
+    body.appendChild(address);
   }
 
   if (neighbor.interests && neighbor.interests.length > 0) {
