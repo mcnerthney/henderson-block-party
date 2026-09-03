@@ -59,7 +59,7 @@ function formatCount(count) {
 }
 
 function updateShareSection() {
-  const currentUrl = window.location.href;
+  const currentUrl = window.location.origin;
   shareUrl.textContent = currentUrl;
   qrCode.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(currentUrl)}`;
 }
@@ -346,7 +346,7 @@ async function retakePhoto() {
 }
 
 async function copyLink() {
-  await navigator.clipboard.writeText(window.location.href);
+  await navigator.clipboard.writeText(window.location.origin);
   formStatus.textContent = 'Link copied. Add it to your printed QR sign if you want a backup.';
 }
 
@@ -359,7 +359,7 @@ async function shareLink() {
   await navigator.share({
     title: "Neighborhood Who's Who",
     text: "Scan in and see who's who in the neighborhood.",
-    url: window.location.href
+    url: window.location.origin
   });
 }
 

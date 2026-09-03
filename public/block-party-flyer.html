@@ -45,7 +45,7 @@
     </section>
   </main>
   <script>
-    const homeUrl = new URL('/index.html', window.location.origin).toString();
+    const homeUrl = window.location.origin;
     document.getElementById('flyer-home-url').textContent = homeUrl;
     document.getElementById('flyer-qr-code').src =
       `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(homeUrl)}`;
