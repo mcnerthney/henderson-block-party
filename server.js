@@ -1,5 +1,7 @@
 const crypto = require('crypto');
 const express = require('express');
+const { getAuth } = require('firebase-admin/auth');
+const { initializeApp, getApps } = require('firebase-admin/app');
 const fs = require('fs');
 const { Storage } = require('@google-cloud/storage');
 const multer = require('multer');
@@ -18,6 +20,12 @@ const uploadPrefix = 'uploads';
 const useGcs = Boolean(bucketName);
 const storageClient = useGcs ? new Storage() : null;
 const bucket = useGcs ? storageClient.bucket(bucketName) : null;
+const firebaseConfig = {
+  apiKey: process.env.FIREBASE_API_KEY || '',
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN || '',
+  projectId: process.env.FIREBASE_PROJECT_ID || '',
+  appId: process.env.FIREBASE_APP_ID || ''
+};
 
 fs.mkdirSync(uploadsDir, { recursive: true });
 fs.mkdirSync(dataDir, { recursive: true });
@@ -197,7 +205,49 @@ function requireAdmin(req, res, next) {
   next();
 }
 
+async function requireAuth(req, res, next) {
+  const authorization = req.get('authorization') || '';
+  const token = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
+
+  if (!token) {
+    next(createHttpError(401, 'Please sign in to view the neighborhood directory.'));
+    return;
+  }
+
+  try {
+    if (getApps().length === 0) {
+      initializeApp({ projectId: firebaseConfig.projectId });
+    }
+    req.user = await getAuth().verifyIdToken(token);
+    next();
+  } catch (error) {
+    next(createHttpError(401, 'Your sign-in has expired. Please sign in again.'));
+  }
+}
+
+function requireAuthOrAdmin(req, res, next) {
+  if (req.get('x-admin-code') === adminCode) {
+    next();
+    return;
+  }
+  requireAuth(req, res, next);
+}
+
 app.use(express.json());
+app.get('/api/auth/config', (req, res) => {
+  if (Object.values(firebaseConfig).some((value) => !value)) {
+    res.status(503).json({ error: 'Authentication is not configured yet.' });
+    return;
+  }
+  res.json(firebaseConfig);
+});
+app.use('/uploads', (req, res, next) => {
+  if (req.query.adminCode === adminCode) {
+    next();
+    return;
+  }
+  requireAuth(req, res, next);
+});
 app.use(express.static(publicDir));
 
 app.get('/admin', (req, res) => {
@@ -239,7 +289,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.get('/api/neighbors', async (req, res) => {
+app.get('/api/neighbors', requireAuthOrAdmin, async (req, res) => {
   const neighbors = (await loadNeighbors())
     .slice()
     .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt));
@@ -251,7 +301,7 @@ app.get('/api/admin/session', requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/api/neighbors', upload.single('photo'), async (req, res) => {
+app.post('/api/neighbors', requireAuth, upload.single('photo'), async (req, res) => {
   const name = readTextField(req.body.name, 'Name', 60);
   const description = readTextField(req.body.description || req.body.intro, 'Description', 100);
   const address = readTextField(req.body.address, 'House or address', 100);

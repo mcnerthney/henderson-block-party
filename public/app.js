@@ -3,8 +3,17 @@ const state = {
   searchTerm: '',
   selectedPhotoFile: null,
   previewObjectUrl: null,
-  cameraStream: null
+  cameraStream: null,
+  user: null,
+  confirmationResult: null
 };
+
+const authPanel = document.querySelector('.auth-panel');
+const authUserPanel = document.getElementById('auth-user-panel');
+const protectedContent = document.getElementById('protected-content');
+const authStatus = document.getElementById('auth-status');
+const emailLoginForm = document.getElementById('email-login-form');
+const phoneLoginForm = document.getElementById('phone-login-form');
 
 const cards = document.getElementById('cards');
 const emptyState = document.getElementById('empty-state');
@@ -169,7 +178,10 @@ function createNeighborCard(neighbor) {
 }
 
 async function loadNeighbors() {
-  const response = await fetch('/api/neighbors');
+  const token = await state.user.getIdToken();
+  const response = await fetch('/api/neighbors', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
 
   if (!response.ok) {
     throw new Error('Unable to load neighbors right now.');
@@ -209,6 +221,7 @@ async function submitProfile(event) {
   try {
     const response = await fetch('/api/neighbors', {
       method: 'POST',
+      headers: { Authorization: `Bearer ${await state.user.getIdToken()}` },
       body: formData
     });
 
@@ -216,6 +229,76 @@ async function submitProfile(event) {
 
     if (!response.ok) {
       throw new Error(payload.error || 'Unable to save your profile.');
+    }
+
+    function setAuthStatus(message) {
+      authStatus.textContent = message;
+    }
+
+    function showAuthenticatedUser(user) {
+      state.user = user;
+      authPanel.hidden = true;
+      authUserPanel.hidden = false;
+      protectedContent.hidden = false;
+      document.getElementById('auth-user-label').textContent = user.email || user.phoneNumber || 'Neighbor';
+      loadNeighbors().catch((error) => setAuthStatus(error.message));
+    }
+
+    async function signInWithProvider(provider) {
+      setAuthStatus('Signing in...');
+      await firebase.auth().signInWithPopup(provider);
+    }
+
+    async function initializeAuth() {
+      const response = await fetch('/api/auth/config');
+      const config = await response.json();
+      if (!response.ok) throw new Error(config.error || 'Authentication is not configured.');
+      firebase.initializeApp(config);
+      const auth = firebase.auth();
+      auth.onAuthStateChanged((user) => {
+        state.user = user;
+        authPanel.hidden = Boolean(user);
+        authUserPanel.hidden = !user;
+        protectedContent.hidden = !user;
+        if (user) {
+          showAuthenticatedUser(user);
+        } else {
+          state.neighbors = [];
+          cards.replaceChildren();
+          resultCount.textContent = formatCount(0);
+        }
+      });
+      document.getElementById('google-login').addEventListener('click', () => {
+        signInWithProvider(new firebase.auth.GoogleAuthProvider()).catch((error) => setAuthStatus(error.message));
+      });
+      document.getElementById('apple-login').addEventListener('click', () => {
+        signInWithProvider(new firebase.auth.OAuthProvider('apple.com')).catch((error) => setAuthStatus(error.message));
+      });
+      emailLoginForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        auth.signInWithEmailAndPassword(document.getElementById('email-login').value, document.getElementById('password-login').value)
+          .catch((error) => setAuthStatus(error.message));
+      });
+      document.getElementById('email-signup').addEventListener('click', () => {
+        auth.createUserWithEmailAndPassword(document.getElementById('email-login').value, document.getElementById('password-login').value)
+          .catch((error) => setAuthStatus(error.message));
+      });
+      phoneLoginForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const verifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { size: 'invisible' });
+        auth.signInWithPhoneNumber(document.getElementById('phone-login').value, verifier)
+          .then((result) => {
+            state.confirmationResult = result;
+            document.getElementById('phone-code-section').hidden = false;
+            setAuthStatus('Enter the code sent to your phone.');
+          })
+          .catch((error) => setAuthStatus(error.message));
+      });
+      document.getElementById('verify-phone').addEventListener('click', () => {
+        state.confirmationResult?.confirm(document.getElementById('phone-code').value)
+          .catch((error) => setAuthStatus(error.message));
+      });
+      document.getElementById('logout').addEventListener('click', () => auth.signOut());
     }
 
     formStatus.textContent = `Saved! ${payload.neighbor.name} is now in the directory.`;
@@ -353,7 +436,5 @@ shareLinkButton.addEventListener('click', () => {
 
 updateShareSection();
 updatePhotoControls();
-loadNeighbors().catch((error) => {
-  formStatus.textContent = error.message;
-});
+initializeAuth().catch((error) => setAuthStatus(error.message));
 window.addEventListener('beforeunload', stopCameraStream);
