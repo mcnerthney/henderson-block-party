@@ -55,7 +55,7 @@
         <form id="join-form" class="form">
           <label class="field">
             <span>Name</span>
-            <input name="name" type="text" placeholder="Roland" maxlength="60" required />
+            <input name="name" type="text" maxlength="60" required />
           </label>
 
           <input id="photo" name="photo" type="file" accept="image/*" hidden />
@@ -87,7 +87,7 @@
 
           <label class="field">
             <span>House or address</span>
-            <input name="address" type="text" placeholder="214 Henderson Rd" maxlength="100" />
+            <input name="address" type="text" maxlength="100" />
           </label>
 
           <label class="field">
@@ -95,24 +95,23 @@
             <input
               name="interests"
               type="text"
-              placeholder="bikes, gardening, dogs, kids"
               maxlength="140"
             />
           </label>
 
           <label class="field">
             <span>Phone number</span>
-            <input name="phone" type="tel" autocomplete="tel" placeholder="541-399-5555" maxlength="30" />
+            <input name="phone" type="tel" autocomplete="tel" maxlength="30" />
           </label>
 
           <label class="field">
             <span>Email address</span>
-            <input name="email" type="email" autocomplete="email" placeholder="username@aol.com" maxlength="120" />
+            <input name="email" type="email" autocomplete="email" maxlength="120" />
           </label>
 
           <label class="field">
             <span>Pet names</span>
-            <input name="petNames" type="text" placeholder="Buddy, Luna" maxlength="120" />
+            <input name="petNames" type="text" maxlength="120" />
           </label>
 
           <button class="button button--primary button--full" id="submit-button" type="submit">
@@ -133,7 +132,7 @@
 
         <label class="field">
           <span>Search by name, address, or interest</span>
-          <input id="search" type="search" placeholder="Search Roland, dogs, Oak Street..." />
+          <input id="search" type="search" />
         </label>
 
         <div class="cards" id="cards"></div>
