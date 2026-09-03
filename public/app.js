@@ -282,13 +282,13 @@ function previewPhoto() {
     return;
   }
 
-  function openPhotoPicker() {
-    photoInput.click();
-  }
-
   stopCameraStream();
   cameraPanel.hidden = true;
   setSelectedPhoto(file);
+}
+
+function openPhotoPicker() {
+  photoInput.click();
 }
 
 async function startCamera() {
