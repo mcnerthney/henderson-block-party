@@ -245,6 +245,14 @@ input {
   line-height: 1.7;
 }
 
+.flyer-countdown {
+  margin: 20px auto 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--brand-dark);
+  font-variant-numeric: tabular-nums;
+}
+
 .facts-panel {
   max-width: 900px;
   margin: 0 auto;

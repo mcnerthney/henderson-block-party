@@ -25,6 +25,10 @@ const previewImage = document.getElementById('preview-image');
 const qrCode = document.getElementById('qr-code');
 const shareUrl = document.getElementById('share-url');
 const eventBanner = document.getElementById('event-banner');
+const eventCountdown = document.getElementById('event-countdown');
+const EVENT_START = new Date('2026-09-23T16:00:00');
+const EVENT_HIDE_AFTER = new Date('2026-09-24T00:00:00');
+let countdownIntervalId = null;
 const copyLinkButton = document.getElementById('copy-link');
 const shareLinkButton = document.getElementById('share-link');
 const confirmationDialog = document.getElementById('profile-confirmation');
@@ -72,8 +76,47 @@ function updateEventBanner() {
   if (!eventBanner) {
     return;
   }
-  const hideAfter = new Date('2026-09-24T00:00:00');
-  eventBanner.hidden = Date.now() >= hideAfter.getTime();
+  eventBanner.hidden = Date.now() >= EVENT_HIDE_AFTER.getTime();
+
+  if (eventBanner.hidden) {
+    if (countdownIntervalId) {
+      clearInterval(countdownIntervalId);
+      countdownIntervalId = null;
+    }
+    return;
+  }
+
+  updateCountdownText();
+  if (!countdownIntervalId) {
+    countdownIntervalId = setInterval(updateCountdownText, 1000);
+  }
+}
+
+function updateCountdownText() {
+  if (!eventCountdown) {
+    return;
+  }
+
+  const remainingMs = EVENT_START.getTime() - Date.now();
+
+  if (remainingMs <= 0) {
+    eventCountdown.textContent = "It's happening now!";
+    return;
+  }
+
+  const totalSeconds = Math.floor(remainingMs / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const parts = [];
+  if (days > 0) {
+    parts.push(`${days}d`);
+  }
+  parts.push(`${hours}h`, `${minutes}m`, `${seconds}s`);
+
+  eventCountdown.textContent = `Countdown: ${parts.join(' ')}`;
 }
 
 function setSelectedPhoto(file) {
