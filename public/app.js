@@ -121,6 +121,18 @@ function updateCountdownText() {
   eventCountdown.textContent = `Countdown: ${parts.join(' ')}`;
 }
 
+function schedulePartyAutoRefresh() {
+  const now = Date.now();
+
+  if (now < EVENT_START.getTime() || now >= EVENT_HIDE_AFTER.getTime()) {
+    return;
+  }
+
+  setInterval(() => {
+    window.location.reload();
+  }, 15000);
+}
+
 function setSelectedPhoto(file) {
   state.selectedPhotoFile = file;
   revokePreviewUrl();
@@ -482,6 +494,7 @@ shareLinkButton.addEventListener('click', () => {
 
 updateShareSection();
 updateEventBanner();
+schedulePartyAutoRefresh();
 updatePhotoControls();
 loadNeighbors().catch((error) => {
   formStatus.textContent = error.message;
