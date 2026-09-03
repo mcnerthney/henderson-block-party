@@ -101,10 +101,6 @@ function createAdminCard(neighbor) {
   const title = document.createElement('h3');
   title.textContent = neighbor.name;
 
-  const address = document.createElement('p');
-  address.className = 'card__address';
-  address.textContent = neighbor.address;
-
   body.append(title);
 
   const displayDescription = getDisplayDescription(neighbor);
@@ -115,7 +111,26 @@ function createAdminCard(neighbor) {
     body.appendChild(description);
   }
 
-  body.appendChild(address);
+  if (neighbor.address) {
+    const address = document.createElement('p');
+    address.className = 'card__address';
+    address.textContent = neighbor.address;
+    body.appendChild(address);
+  }
+
+  [
+    ['Phone', neighbor.phone],
+    ['Email', neighbor.email],
+    ['Pets', neighbor.petNames]
+  ].forEach(([label, value]) => {
+    if (!value) {
+      return;
+    }
+    const detail = document.createElement('p');
+    detail.className = 'card__address';
+    detail.textContent = `${label}: ${value}`;
+    body.appendChild(detail);
+  });
 
   if (neighbor.interests && neighbor.interests.length > 0) {
     const tags = document.createElement('div');

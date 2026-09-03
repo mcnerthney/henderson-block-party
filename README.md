@@ -5,7 +5,7 @@ Small mobile-friendly web app for a block party directory.
 ## Features
 
 - Take a photo in the app with retake support, or upload one
-- Add your name, with an optional house/address, description, photo, and interests
+- Add your name, with optional house/address, description, photo, interests, phone, email, and pet names
 - Search by name, address, or interests
 - Browse neighbor photos
 - Share the page with a QR code guests can scan

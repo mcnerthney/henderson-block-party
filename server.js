@@ -256,6 +256,9 @@ app.post('/api/neighbors', upload.single('photo'), async (req, res) => {
   const description = readTextField(req.body.description || req.body.intro, 'Description', 100);
   const address = readTextField(req.body.address, 'House or address', 100);
   const interests = parseInterests(req.body.interests);
+  const phone = readTextField(req.body.phone, 'Phone number', 30);
+  const email = readTextField(req.body.email, 'Email address', 120);
+  const petNames = readTextField(req.body.petNames, 'Pet names', 120);
 
   if (!name) {
     throw new Error('Name is required.');
@@ -268,6 +271,9 @@ app.post('/api/neighbors', upload.single('photo'), async (req, res) => {
     description,
     address,
     interests,
+    phone,
+    email,
+    petNames,
     photoUrl,
     createdAt: new Date().toISOString()
   };

@@ -84,6 +84,9 @@ function matchesSearch(neighbor, term) {
     neighbor.name,
     neighbor.description || neighbor.intro,
     neighbor.address || '',
+    neighbor.phone || '',
+    neighbor.email || '',
+    neighbor.petNames || '',
     ...(neighbor.interests || [])
   ]
     .join(' ')
@@ -152,6 +155,20 @@ function createNeighborCard(neighbor) {
     address.textContent = neighbor.address;
     body.appendChild(address);
   }
+
+  [
+    ['Phone', neighbor.phone],
+    ['Email', neighbor.email],
+    ['Pets', neighbor.petNames]
+  ].forEach(([label, value]) => {
+    if (!value) {
+      return;
+    }
+    const detail = document.createElement('p');
+    detail.className = 'card__address';
+    detail.textContent = `${label}: ${value}`;
+    body.appendChild(detail);
+  });
 
   if (neighbor.interests && neighbor.interests.length > 0) {
     const tags = document.createElement('div');
