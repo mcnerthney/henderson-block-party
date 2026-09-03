@@ -170,16 +170,25 @@ function createNeighborCard(neighbor) {
   }
 
   [
-    ['Phone', neighbor.phone],
-    ['Email', neighbor.email],
-    ['Pets', neighbor.petNames]
-  ].forEach(([label, value]) => {
+    ['Phone', neighbor.phone, `tel:${neighbor.phone || ''}`],
+    ['Email', neighbor.email, `mailto:${neighbor.email || ''}`],
+    ['Pets', neighbor.petNames, null]
+  ].forEach(([label, value, href]) => {
     if (!value) {
       return;
     }
     const detail = document.createElement('p');
     detail.className = 'card__address';
-    detail.textContent = `${label}: ${value}`;
+    if (href) {
+      detail.append(`${label}: `);
+      const link = document.createElement('a');
+      link.className = 'card__link';
+      link.href = href;
+      link.textContent = value;
+      detail.appendChild(link);
+    } else {
+      detail.textContent = `${label}: ${value}`;
+    }
     body.appendChild(detail);
   });
 

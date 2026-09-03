@@ -552,6 +552,17 @@ input {
   line-height: 1.5;
 }
 
+.card__link {
+  color: var(--brand);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.card__link:hover,
+.card__link:focus-visible {
+  text-decoration: underline;
+}
+
 .tags {
   display: flex;
   flex-wrap: wrap;
