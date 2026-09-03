@@ -35,6 +35,8 @@ const confirmationDialog = document.getElementById('profile-confirmation');
 const confirmationPreview = document.getElementById('confirmation-preview');
 const saveErrorDialog = document.getElementById('save-error-dialog');
 const saveErrorMessage = document.getElementById('save-error-message');
+const saveSuccessDialog = document.getElementById('save-success-dialog');
+const saveSuccessMessage = document.getElementById('save-success-message');
 
 function revokePreviewUrl() {
   if (state.previewObjectUrl) {
@@ -308,7 +310,10 @@ async function submitProfile(event) {
       throw new Error(payload.error || 'Unable to save your profile.');
     }
 
-    formStatus.textContent = `Thanks! ${payload.neighbor.name}'s profile was submitted and is awaiting admin approval.`;
+    const successMessage = `Thanks! ${payload.neighbor.name}'s profile was submitted and is awaiting admin approval.`;
+    formStatus.textContent = successMessage;
+    saveSuccessMessage.textContent = successMessage;
+    saveSuccessDialog.showModal();
     resetForm();
   } catch (error) {
     formStatus.textContent = error.message;
