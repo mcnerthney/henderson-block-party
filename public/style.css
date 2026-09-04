@@ -284,8 +284,8 @@ input {
 }
 
 .flyer-countdown {
-  margin: 20px auto 0;
-  font-size: 1.15rem;
+  margin: 12px 0 0;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--brand-dark);
   font-variant-numeric: tabular-nums;
