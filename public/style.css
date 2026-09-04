@@ -195,6 +195,44 @@ input {
   font-size: 1.6rem;
 }
 
+.directions-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px auto 0;
+  justify-self: center;
+  padding: 8px 14px 8px 8px;
+  width: fit-content;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--brand);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: background 0.15s ease;
+}
+
+.directions-button:hover,
+.directions-button:focus-visible {
+  background: rgba(37, 99, 235, 0.18);
+}
+
+.directions-button__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+}
+
+.directions-button__icon svg {
+  width: 16px;
+  height: 16px;
+}
+
 .flyer-bring-list {
   display: grid;
   gap: 10px;
