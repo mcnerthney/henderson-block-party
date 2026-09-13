@@ -21,6 +21,7 @@ const storageClient = useGcs ? new Storage() : null;
 const bucket = useGcs ? storageClient.bucket(bucketName) : null;
 const notifyEmail = process.env.NOTIFY_EMAIL || 'dan.mcnerthney@gmail.com';
 const notifySmsAddress = process.env.NOTIFY_SMS_ADDRESS || '5036794375@msg.fi.google.com';
+const adminUrl = process.env.ADMIN_URL || 'https://henderson.softllc.com/admin';
 const smtpUser = process.env.SMTP_USER || '';
 const smtpPass = process.env.SMTP_PASS || '';
 const canSendEmail = Boolean(smtpUser && smtpPass);
@@ -50,7 +51,7 @@ async function notifyNewSubmission(neighbor) {
         neighbor.phone ? `Phone: ${neighbor.phone}` : null,
         neighbor.email ? `Email: ${neighbor.email}` : null,
         '',
-        'Review it in the admin panel.'
+        `Review it in the admin panel: ${adminUrl}`
       ]
         .filter(Boolean)
         .join('\n')
@@ -65,7 +66,7 @@ async function notifyNewSubmission(neighbor) {
         from: smtpUser,
         to: notifySmsAddress,
         subject: '',
-        text: `New Who's Who profile: ${neighbor.name} is awaiting approval.`
+        text: `New Who's Who profile: ${neighbor.name} is awaiting approval. Review: ${adminUrl}`
       });
     } catch (err) {
       console.error('Failed to send new submission text:', err.message);
