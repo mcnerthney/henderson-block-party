@@ -3,6 +3,7 @@ const express = require('express');
 const fs = require('fs');
 const { Storage } = require('@google-cloud/storage');
 const multer = require('multer');
+const nodemailer = require('nodemailer');
 const path = require('path');
 
 const app = express();
@@ -18,6 +19,46 @@ const uploadPrefix = 'uploads';
 const useGcs = Boolean(bucketName);
 const storageClient = useGcs ? new Storage() : null;
 const bucket = useGcs ? storageClient.bucket(bucketName) : null;
+const notifyEmail = process.env.NOTIFY_EMAIL || 'dan.mcnerthney@gmail.com';
+const smtpUser = process.env.SMTP_USER || '';
+const smtpPass = process.env.SMTP_PASS || '';
+const canSendEmail = Boolean(smtpUser && smtpPass);
+const mailer = canSendEmail
+  ? nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: smtpUser, pass: smtpPass }
+    })
+  : null;
+
+async function notifyNewSubmission(neighbor) {
+  if (!mailer) {
+    return;
+  }
+
+  try {
+    await mailer.sendMail({
+      from: smtpUser,
+      to: notifyEmail,
+      subject: `New profile submitted: ${neighbor.name}`,
+      text: [
+        `${neighbor.name} submitted a profile and is awaiting admin approval.`,
+        '',
+        neighbor.address ? `Address: ${neighbor.address}` : null,
+        neighbor.description ? `Description: ${neighbor.description}` : null,
+        neighbor.interests && neighbor.interests.length ? `Interests: ${neighbor.interests.join(', ')}` : null,
+        neighbor.phone ? `Phone: ${neighbor.phone}` : null,
+        neighbor.email ? `Email: ${neighbor.email}` : null,
+        '',
+        'Review it in the admin panel.'
+      ]
+        .filter(Boolean)
+        .join('\n')
+    });
+  } catch (err) {
+    console.error('Failed to send new submission email:', err.message);
+  }
+}
+
 
 fs.mkdirSync(uploadsDir, { recursive: true });
 fs.mkdirSync(dataDir, { recursive: true });
@@ -291,6 +332,8 @@ app.post('/api/neighbors', upload.single('photo'), async (req, res) => {
   const neighbors = await loadNeighbors();
   neighbors.unshift(neighbor);
   await saveNeighbors(neighbors);
+
+  notifyNewSubmission(neighbor);
 
   res.status(201).json({ neighbor });
 });
