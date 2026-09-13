@@ -20,6 +20,7 @@ const useGcs = Boolean(bucketName);
 const storageClient = useGcs ? new Storage() : null;
 const bucket = useGcs ? storageClient.bucket(bucketName) : null;
 const notifyEmail = process.env.NOTIFY_EMAIL || 'dan.mcnerthney@gmail.com';
+const notifySmsAddress = process.env.NOTIFY_SMS_ADDRESS || '5036794375@msg.fi.google.com';
 const smtpUser = process.env.SMTP_USER || '';
 const smtpPass = process.env.SMTP_PASS || '';
 const canSendEmail = Boolean(smtpUser && smtpPass);
@@ -56,6 +57,19 @@ async function notifyNewSubmission(neighbor) {
     });
   } catch (err) {
     console.error('Failed to send new submission email:', err.message);
+  }
+
+  if (notifySmsAddress) {
+    try {
+      await mailer.sendMail({
+        from: smtpUser,
+        to: notifySmsAddress,
+        subject: '',
+        text: `New Who's Who profile: ${neighbor.name} is awaiting approval.`
+      });
+    } catch (err) {
+      console.error('Failed to send new submission text:', err.message);
+    }
   }
 }
 
