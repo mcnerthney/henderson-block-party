@@ -79,5 +79,28 @@
       </section>
     </section>
   </main>
+
+  <footer class="site-footer">
+    <nav class="site-footer__links" aria-label="Site footer">
+      <button class="site-footer__link" type="button" data-open-profile-contact>
+        Edit or remove a profile
+      </button>
+    </nav>
+  </footer>
+  <dialog id="profile-contact-dialog" class="confirmation-dialog" aria-labelledby="profile-contact-title">
+    <form method="dialog" class="confirmation-dialog__content">
+      <p class="eyebrow">Profile help</p>
+      <h2 id="profile-contact-title">Need to edit or delete a profile?</h2>
+      <p class="callout-copy">
+        Contact Dan at
+        <a href="mailto:dan.mcnerthney@gmail.com?subject=Profile%20edit%20or%20removal%20request">dan.mcnerthney@gmail.com</a>
+        or <a href="tel:+15036794375">503-679-4375</a> to edit or delete a profile.
+      </p>
+      <div class="confirmation-actions">
+        <button class="button button--primary" value="close" type="submit">Close</button>
+      </div>
+    </form>
+  </dialog>
+  <script src="footer.js"></script>
 </body>
 </html>
