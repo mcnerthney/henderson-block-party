@@ -28,7 +28,7 @@ function getDisplayDescription(neighbor) {
 }
 
 function getInitials(name) {
-  const parts = name.trim().split(/\s+/).filter(Boolean).slice(0, 2);
+  const parts = name.match(/[\p{L}\p{N}]+/gu) || [];
   return parts.map((part) => part[0]?.toUpperCase() || '').join('') || '?';
 }
 
