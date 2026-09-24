@@ -24,7 +24,6 @@ const previewContainer = document.getElementById('photo-preview');
 const previewImage = document.getElementById('preview-image');
 const qrCode = document.getElementById('qr-code');
 const shareUrl = document.getElementById('share-url');
-const eventBanner = document.getElementById('event-banner');
 const eventCountdown = document.getElementById('event-countdown');
 const EVENT_START = new Date('2026-09-23T16:00:00');
 const EVENT_HIDE_AFTER = new Date('2026-09-24T00:00:00');
@@ -75,23 +74,7 @@ function updateShareSection() {
 }
 
 function updateEventBanner() {
-  if (!eventBanner) {
-    return;
-  }
-  eventBanner.hidden = Date.now() >= EVENT_HIDE_AFTER.getTime();
-
-  if (eventBanner.hidden) {
-    if (countdownIntervalId) {
-      clearInterval(countdownIntervalId);
-      countdownIntervalId = null;
-    }
-    return;
-  }
-
-  updateCountdownText();
-  if (!countdownIntervalId) {
-    countdownIntervalId = setInterval(updateCountdownText, 1000);
-  }
+  return;
 }
 
 function updateCountdownText() {
